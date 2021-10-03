@@ -1,0 +1,9 @@
+.idea
+bin
+obj
+
+# input files
+*.txt
+
+# xUnit artefact
+*.sln.DotSettings.user
