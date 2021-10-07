@@ -9,6 +9,7 @@ namespace RandomVariableGenerating
         IReadOnlyList<double> Differences,
         IReadOnlyList<double> DensityValues)
     {
-        public int ItemsPerInterval => Volume / IntervalCount;
+        private int? _itemsPerInterval;
+        public int ItemsPerInterval => _itemsPerInterval ??= Volume / IntervalCount;
     }
 }

@@ -7,22 +7,27 @@ namespace RandomVariableGenerating
 {
     public class Sample
     {
+        private double? _sampleMean;
+        private double? _unbiasedSampleVariance;
+        private double? _biasedSampleVariance;
+        private int? _intervalCount;
+
+        public Sample(double[] source, int sampleRoundDigits = 1)
+        {
+            SamplePoints = source.ToSamplePoints(sampleRoundDigits);
+            Occurrences = SamplePoints.ToOccurrences();
+        }
+        
         public IReadOnlyList<double> SamplePoints { get; }
         public IReadOnlyDictionary<double, int> Occurrences { get; }
 
-        public Sample(double[] source)
-        {
-            SamplePoints = source.ToSamplePoints();
-            Occurrences = source.ToOccurrences();
-        }
-
-        public double SampleMean => SamplePoints.Sum() / SamplePoints.Count;
+        public double SampleMean => _sampleMean ??= SamplePoints.Sum() / SamplePoints.Count;
         
         // несмещенная состоятельная оценка дисперсии
-        public double UnbiasedSampleVariance => CalculateSampleVariance();
+        public double UnbiasedSampleVariance => _unbiasedSampleVariance ??= CalculateSampleVariance(false);
         
         // смещенная состоятельная оценка дисперсии
-        public double BiasedSampleVariance => CalculateSampleVariance(false);
+        public double BiasedSampleVariance => _biasedSampleVariance ??= CalculateSampleVariance();
 
         private double CalculateSampleVariance(bool isBiased = true)
         {
@@ -30,7 +35,7 @@ namespace RandomVariableGenerating
             return SamplePoints.Sum(point => Math.Pow(point - SampleMean, 2)) / denominator;
         }
 
-        public int IntervalCount =>
+        public int IntervalCount => _intervalCount ??=
             SamplePoints.Count <= 100
                 ? (int) Math.Sqrt(SamplePoints.Count)
                 : (int) (4 * Math.Log10(SamplePoints.Count));
