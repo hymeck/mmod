@@ -49,11 +49,18 @@ namespace RandomVariableGenerating.Extensions
         {
             var samplePoints = Guard.Against.Null(sample, nameof(sample)).SamplePoints;
             var occurrences = sample.Occurrences;
-            var (relativeFrequencies, accumulatedFrequencies) = BuildFrequencies(samplePoints, occurrences);
-            return new AccumulativeDistributionFunction(occurrences, relativeFrequencies, accumulatedFrequencies);
+            var (relativeFrequencies, accumulatedFrequencies, totalCount, totalFrequency) = 
+                BuildFrequencies(samplePoints, occurrences);
+            return new AccumulativeDistributionFunction(
+                occurrences,
+                relativeFrequencies,
+                accumulatedFrequencies,
+                totalCount,
+                totalFrequency);
         }
 
-        private static (double[] relativeFrequencies, double[] accumulatedFrequencies) BuildFrequencies(
+        private static (double[] relativeFrequencies, double[] accumulatedFrequencies, int totalCount, double totalFrequency) 
+            BuildFrequencies(
             IReadOnlyList<double> samplePoints,
             IReadOnlyDictionary<double, int> occurrences)
         {
@@ -61,6 +68,8 @@ namespace RandomVariableGenerating.Extensions
             var relativeFrequencies = new double[volume];
             var accumulatedFrequencies = new double[volume];
             var i = 0;
+            var totalCount = 0;
+            var totalFrequency = 0d;
             foreach (var count in occurrences.Values)
             {
                 var relativeFrequency = (double) count / volume;
@@ -72,11 +81,13 @@ namespace RandomVariableGenerating.Extensions
                 relativeFrequencies[i] = relativeFrequency;
                 accumulatedFrequencies[i] = accumulatedFrequency;
 
+                totalCount += count;
+                totalFrequency += relativeFrequency;
                 i++;
             }
 
             accumulatedFrequencies[^1] = Math.Round(accumulatedFrequencies[^1]); // round last entry to 1
-            return (relativeFrequencies, accumulatedFrequencies);
+            return (relativeFrequencies, accumulatedFrequencies, totalCount, totalFrequency);
         }
     }
 }
