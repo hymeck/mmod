@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using RandomVariableGenerating.Extensions;
 using RandomVariableGenerating.Utils;
 
 namespace RandomVariableGenerating.Demo
@@ -36,7 +38,8 @@ namespace RandomVariableGenerating.Demo
 
             var empiricalProbabilities = BuildEmpiricalProbabilities(inputX, inputY, variables);
             PrintProbabilityMatrix(empiricalProbabilities);
-            
+            Console.WriteLine();
+
 
             var histogramPlotter = new HistogramPlotter(inputX, inputY, probabilities, empiricalProbabilities);
             var volumeStr = volume.ToString();
@@ -47,6 +50,15 @@ namespace RandomVariableGenerating.Demo
             histogramPlotter
                 .PlotHistogramY()
                 .SaveFig(FullPath($"probabilities_y-{volumeStr}.png"));
+            
+            
+            var meanXEstimation = probabilities.MeanXPointEstimation(inputX);
+            var actualMeanXPointEstimation = empiricalProbabilities.MeanXPointEstimation(inputX);
+            PrintMeanPointEstimations(meanXEstimation, actualMeanXPointEstimation);
+            
+            var meanYEstimation = probabilities.MeanYPointEstimation(inputY);
+            var actualMeanYPointEstimation = empiricalProbabilities.MeanYPointEstimation(inputY);
+            PrintMeanPointEstimations(meanYEstimation, actualMeanYPointEstimation);
             
             #endregion // + Investigations +
         }
@@ -88,5 +100,9 @@ namespace RandomVariableGenerating.Demo
         private static void PrintProbabilityMatrix(ProbabilityMatrix matrix) => Console.Write(matrix.ToString());
 
         private static string FullPath(string filename) => Path.Combine(Directory.GetCurrentDirectory(), filename);
+
+        private static void PrintMeanPointEstimations(double theoretical, double empirical) =>
+            Console.WriteLine(
+                $"{theoretical.ToString(CultureInfo.InvariantCulture)} {empirical.ToString(CultureInfo.InvariantCulture)}");
     }
 }
