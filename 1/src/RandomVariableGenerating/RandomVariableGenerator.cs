@@ -7,11 +7,11 @@ namespace RandomVariableGenerating
     public class RandomVariableGenerator
     {
         private readonly Random _random;
-        private readonly int[] _x;
-        private readonly int[] _y;
+        private readonly IReadOnlyList<int> _x;
+        private readonly IReadOnlyList<int> _y;
         private readonly double[,] _probabilities;
 
-        public RandomVariableGenerator(Random random, int[] x, int[] y, double[,] probabilities)
+        public RandomVariableGenerator(Random random, IReadOnlyList<int> x, IReadOnlyList<int> y, double[,] probabilities)
         {
             _random = random;
             _x = x;
@@ -110,7 +110,9 @@ namespace RandomVariableGenerating
         {
             for (var i = 0; i < Fx.Length - 1; i++)
             {
-                if (value > Fx[i] && value < Fx[i + 1])
+                if (value < Fx[i])
+                    return i;
+                if (value >= Fx[i] && value < Fx[i + 1])
                     return i + 1;
             }
 
@@ -123,7 +125,10 @@ namespace RandomVariableGenerating
             var columnSize = normalizedF.GetLength(1);
             for (var i = 0; i < columnSize - 1; i++)
             {
-                if (value > normalizedF[indexX, i] && value < normalizedF[indexX, i + 1])
+                if (value < normalizedF[indexX, i])
+                    return i;
+                
+                if (value >= normalizedF[indexX, i] && value < normalizedF[indexX, i + 1])
                     return i + 1;
             }
 
@@ -131,7 +136,7 @@ namespace RandomVariableGenerating
             throw new InvalidOperationException(nameof(GetIndexY));
         }
 
-        public static IEnumerable<(int x, int y)> Generate(Random random, int[] x, int[] y, double[,] probabilities, int times = 1)
+        public static IEnumerable<(int x, int y)> Generate(Random random, IReadOnlyList<int> x, IReadOnlyList<int> y, double[,] probabilities, int times = 1)
         {
             return new RandomVariableGenerator(random, x, y, probabilities).Generate(times);
         }
