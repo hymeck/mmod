@@ -17,11 +17,18 @@ namespace RandomVariableGenerating
             SamplePoints = source.ToSamplePoints(sampleRoundDigits);
             Occurrences = SamplePoints.ToOccurrences();
         }
+
+        public Sample(IEnumerable<double> source)
+        {
+            SamplePoints = source.ToSamplePoints();
+            Occurrences = SamplePoints.ToOccurrences();
+        }
         
         public IReadOnlyList<double> SamplePoints { get; }
         public IReadOnlyDictionary<double, int> Occurrences { get; }
 
-        public double SampleMean => _sampleMean ??= SamplePoints.Sum() / SamplePoints.Count;
+        public int Volume => SamplePoints.Count;
+        public double SampleMean => _sampleMean ??= SamplePoints.Sum() / Volume;
         
         // несмещенная состоятельная оценка дисперсии
         public double UnbiasedSampleVariance => _unbiasedSampleVariance ??= CalculateSampleVariance(false);
@@ -31,7 +38,7 @@ namespace RandomVariableGenerating
 
         private double CalculateSampleVariance(bool isBiased = true)
         {
-            var denominator = isBiased ? SamplePoints.Count : SamplePoints.Count - 1;
+            var denominator = isBiased ? Volume : Volume - 1;
             return SamplePoints.Sum(point => Math.Pow(point - SampleMean, 2)) / denominator;
         }
 

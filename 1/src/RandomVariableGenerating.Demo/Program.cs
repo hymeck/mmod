@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using RandomVariableGenerating.Extensions;
@@ -25,7 +24,7 @@ namespace RandomVariableGenerating.Demo
                 {0.10, 0.10, 0.15},
                 {0.05, 0.05, 0.10}
             };
-            var volume = TryGetVolumeFromArgs(args);
+            var volume = GetVolumeFromArgs(args);
             
             PrintInput(inputX, inputY, probabilities, volume, "Input data");
 
@@ -73,13 +72,28 @@ namespace RandomVariableGenerating.Demo
             Console.Write("Variance Y point estimation: ");
             PrintStatistics(varianceYEstimation, actualVarianceYPointEstimation);
             
+            var significance = GetSignificanceFromArgs(args);
+            Console.WriteLine($"Significance: {significance}");
+            var (leftX, rightX) = FromIEnumerable(variables.Select(item => item.x))
+                .IntervalEstimation(significance);
+            Console.WriteLine($"Interval X: {leftX} to {rightX}");
+            
+            var (leftY, rightY) = FromIEnumerable(variables.Select(item => item.y))
+                .IntervalEstimation(significance);
+            Console.WriteLine($"Interval Y: {leftY} to {rightY}");
+
             #endregion // + Investigations +
         }
 
-        private static int TryGetVolumeFromArgs(IReadOnlyList<string> args) =>
+        private static int GetVolumeFromArgs(IReadOnlyList<string> args) =>
             args.Count != 0 && int.TryParse(args[0], out var volume) && volume >= 0
                 ? volume
                 : 100_000;
+
+        private static double GetSignificanceFromArgs(IReadOnlyList<string> args) =>
+            args.Count > 1 && double.TryParse(args[1], out var volume) && volume is >= 0 and <= 1
+                ? volume
+                : 0.95;
 
         private static ProbabilityMatrix BuildEmpiricalProbabilities(IReadOnlyList<int> inputX, IReadOnlyList<int> inputY, IReadOnlyCollection<(int x, int y)> variables)
         {
@@ -116,7 +130,8 @@ namespace RandomVariableGenerating.Demo
         private static string FullPath(string filename) => Path.Combine(Directory.GetCurrentDirectory(), filename);
 
         private static void PrintStatistics(double theoretical, double empirical) =>
-            Console.WriteLine(
-                $"{theoretical.ToString(CultureInfo.InvariantCulture)} {empirical.ToString(CultureInfo.InvariantCulture)}");
+            Console.WriteLine($"{theoretical} {empirical}");
+
+        private static Sample FromIEnumerable(IEnumerable<int> input) => new(input.Select(item => (double) item));
     }
 }
