@@ -37,6 +37,7 @@ namespace RandomVariableGenerating.Demo
             #region + Investigations +
 
             var empiricalProbabilities = BuildEmpiricalProbabilities(inputX, inputY, variables);
+            Console.WriteLine("Empirical probability matrix:");
             PrintProbabilityMatrix(empiricalProbabilities);
             Console.WriteLine();
 
@@ -54,11 +55,23 @@ namespace RandomVariableGenerating.Demo
             
             var meanXEstimation = probabilities.MeanXPointEstimation(inputX);
             var actualMeanXPointEstimation = empiricalProbabilities.MeanXPointEstimation(inputX);
-            PrintMeanPointEstimations(meanXEstimation, actualMeanXPointEstimation);
+            Console.Write("Mean X point estimation: ");
+            PrintStatistics(meanXEstimation, actualMeanXPointEstimation);
             
             var meanYEstimation = probabilities.MeanYPointEstimation(inputY);
             var actualMeanYPointEstimation = empiricalProbabilities.MeanYPointEstimation(inputY);
-            PrintMeanPointEstimations(meanYEstimation, actualMeanYPointEstimation);
+            Console.Write("Mean Y point estimation: ");
+            PrintStatistics(meanYEstimation, actualMeanYPointEstimation);
+            
+            var varianceXEstimation = probabilities.VarianceXPointEstimation(inputX);
+            var actualVarianceXPointEstimation = empiricalProbabilities.VarianceXPointEstimation(inputX);
+            Console.Write("Variance X point estimation: ");
+            PrintStatistics(varianceXEstimation, actualVarianceXPointEstimation);
+            
+            var varianceYEstimation = probabilities.VarianceYPointEstimation(inputY);
+            var actualVarianceYPointEstimation = empiricalProbabilities.VarianceYPointEstimation(inputY);
+            Console.Write("Variance Y point estimation: ");
+            PrintStatistics(varianceYEstimation, actualVarianceYPointEstimation);
             
             #endregion // + Investigations +
         }
@@ -90,10 +103,11 @@ namespace RandomVariableGenerating.Demo
             int volume, string caption)
         {
             Console.WriteLine(caption);
-            Console.WriteLine(string.Join(' ', x));
-            Console.WriteLine(string.Join(' ', y));
+            Console.WriteLine($"X: {string.Join(' ', x)}");
+            Console.WriteLine($"Y: {string.Join(' ', y)}");
+            Console.WriteLine("Theoretical probability matrix:");
             PrintProbabilityMatrix(inputMatrix);
-            Console.WriteLine(volume.ToString());
+            Console.WriteLine($"Volume: {volume.ToString()}");
             Console.WriteLine();
         }
 
@@ -101,7 +115,7 @@ namespace RandomVariableGenerating.Demo
 
         private static string FullPath(string filename) => Path.Combine(Directory.GetCurrentDirectory(), filename);
 
-        private static void PrintMeanPointEstimations(double theoretical, double empirical) =>
+        private static void PrintStatistics(double theoretical, double empirical) =>
             Console.WriteLine(
                 $"{theoretical.ToString(CultureInfo.InvariantCulture)} {empirical.ToString(CultureInfo.InvariantCulture)}");
     }
