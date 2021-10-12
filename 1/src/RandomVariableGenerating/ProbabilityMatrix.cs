@@ -2,13 +2,14 @@
 using System.Globalization;
 using System.Text;
 using Ardalis.GuardClauses;
-using RandomVariableGenerating.Extensions;
 
 namespace RandomVariableGenerating
 {
     public class ProbabilityMatrix
     {
         private readonly double[,] _probabilities;
+        private double[] _xProbabilities;
+        private double[] _yProbabilities;
 
         public ProbabilityMatrix(double[,] probabilities)
         {
@@ -16,13 +17,10 @@ namespace RandomVariableGenerating
         }
 
         public double this[int x, int y] => _probabilities[x, y];
-
-        public static implicit operator ProbabilityMatrix(double[,] source) => new (source);
-        public static implicit operator double[,](ProbabilityMatrix matrix) => matrix._probabilities;
-
-
-        private double[] _xProbabilities;
         public IReadOnlyList<double> XProbabilities => _xProbabilities ??= GetXProbabilities();
+        public IReadOnlyList<double> YProbabilities => _yProbabilities ??= GetYProbabilities();
+        public int TotalCount => XProbabilities.Count * YProbabilities.Count;
+
         private double[] GetXProbabilities()
         {
             var rows = _probabilities.GetLength(0);
@@ -39,8 +37,6 @@ namespace RandomVariableGenerating
             return xProbabilities;
         }
         
-        private double[] _yProbabilities;
-        public IReadOnlyList<double> YProbabilities => _yProbabilities ??= GetYProbabilities();
         private double[] GetYProbabilities()
         {
             var rows = _probabilities.GetLength(0);
@@ -56,7 +52,6 @@ namespace RandomVariableGenerating
 
             return yProbabilities;
         }
-        
 
         public override string ToString()
         {
@@ -73,5 +68,8 @@ namespace RandomVariableGenerating
 
             return sb.ToString();
         }
+        
+        public static implicit operator ProbabilityMatrix(double[,] source) => new (source);
+        public static implicit operator double[,](ProbabilityMatrix matrix) => matrix._probabilities;
     }
 }

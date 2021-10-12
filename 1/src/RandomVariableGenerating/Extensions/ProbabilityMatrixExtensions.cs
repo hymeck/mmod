@@ -34,6 +34,22 @@ namespace RandomVariableGenerating.Extensions
             return (meanXy - (meanX * meanY)) / Math.Sqrt(varianceX * varianceY);
         }
 
+        public static double ChiSquared(this ProbabilityMatrix empiricalMatrix, ProbabilityMatrix matrix,
+            IReadOnlyList<int> sourceX, IReadOnlyList<int> sourceY, int volume)
+        {
+            Guard.Against.Null(empiricalMatrix, nameof(empiricalMatrix));
+            Guard.Against.Null(matrix, nameof(matrix));
+            Guard.Against.Null(sourceX, nameof(sourceX));
+            Guard.Against.Null(sourceY, nameof(sourceY));
+            Guard.Against.NegativeOrZero(volume, nameof(volume));
+
+            var left = DenseMatrix.Build.DenseOfArray(empiricalMatrix);
+            var right = DenseMatrix.Build.DenseOfArray(matrix);
+            var squared = (left - right).Map(item => Math.Pow(item, 2));
+            var division = squared.PointwiseDivide(right);
+            return division.Enumerate().Sum() * volume;
+        }
+
         private static double MeanXY(double[,] probabilities, IReadOnlyList<int> sourceX, IReadOnlyList<int> sourceY)
         {
             var matrix = DenseMatrix.Build.DenseOfArray(probabilities).Transpose();

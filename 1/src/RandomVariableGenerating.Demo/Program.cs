@@ -87,6 +87,14 @@ namespace RandomVariableGenerating.Demo
             Console.Write("Correlation: ");
             PrintStatistics(correlation, empiricalCorrelation);
 
+            var confidence = GetConfidenceFromArgs(args);
+            Console.WriteLine($"\nConfidence: {confidence}\n");
+            var chiSquared = confidence.ChiSquared(probabilities.TotalCount - 1);
+            Console.WriteLine($"Chi-squared bound value: {chiSquared}");
+            var actualChiSquare = probabilities.ChiSquared(empiricalProbabilities, inputX, inputY, volume);
+            Console.WriteLine($"Actual chi-squared value: {actualChiSquare}");
+            Console.WriteLine($"Actual < bound: {actualChiSquare < chiSquared}");
+
             #endregion // + Investigations +
         }
 
@@ -99,6 +107,11 @@ namespace RandomVariableGenerating.Demo
             args.Count > 1 && double.TryParse(args[1], out var volume) && volume is >= 0 and <= 1
                 ? volume
                 : 0.95;
+
+        private static double GetConfidenceFromArgs(IReadOnlyList<string> args) =>
+            args.Count > 2 && double.TryParse(args[2], out var volume) && volume is >= 0 and <= 1
+                ? volume
+                : 0.05;
 
         private static ProbabilityMatrix BuildEmpiricalProbabilities(IReadOnlyList<int> inputX, IReadOnlyList<int> inputY, IReadOnlyCollection<(int x, int y)> variables)
         {
