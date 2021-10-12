@@ -13,7 +13,7 @@ namespace RandomVariableGenerating.Demo
         {
             #region + Input initialization +
 
-            var random = new Random(2021); // deterministic random
+            var random = new Random(853503); // deterministic random
             // suppose that values are in ascending order
             var inputX = new[] {4, 8, 9, 11};
             var inputY = new[] {3, 6, 8};
@@ -59,7 +59,7 @@ namespace RandomVariableGenerating.Demo
             
             var meanYEstimation = probabilities.MeanYPointEstimation(inputY);
             var actualMeanYPointEstimation = empiricalProbabilities.MeanYPointEstimation(inputY);
-            Console.Write("Mean Y point estimation: ");
+            Console.Write("\nMean Y point estimation: ");
             PrintStatistics(meanYEstimation, actualMeanYPointEstimation);
             
             var varianceXEstimation = probabilities.VarianceXPointEstimation(inputX);
@@ -73,14 +73,19 @@ namespace RandomVariableGenerating.Demo
             PrintStatistics(varianceYEstimation, actualVarianceYPointEstimation);
             
             var significance = GetSignificanceFromArgs(args);
-            Console.WriteLine($"Significance: {significance}");
+            Console.WriteLine($"\nSignificance: {significance}\n");
             var (leftX, rightX) = FromIEnumerable(variables.Select(item => item.x))
                 .IntervalEstimation(significance);
             Console.WriteLine($"Interval X: {leftX} to {rightX}");
             
             var (leftY, rightY) = FromIEnumerable(variables.Select(item => item.y))
                 .IntervalEstimation(significance);
-            Console.WriteLine($"Interval Y: {leftY} to {rightY}");
+            Console.WriteLine($"Interval Y: {leftY} to {rightY}\n");
+
+            var correlation = probabilities.Correlation(inputX, inputY);
+            var empiricalCorrelation = empiricalProbabilities.Correlation(inputX, inputY);
+            Console.Write("Correlation: ");
+            PrintStatistics(correlation, empiricalCorrelation);
 
             #endregion // + Investigations +
         }
@@ -130,7 +135,7 @@ namespace RandomVariableGenerating.Demo
         private static string FullPath(string filename) => Path.Combine(Directory.GetCurrentDirectory(), filename);
 
         private static void PrintStatistics(double theoretical, double empirical) =>
-            Console.WriteLine($"{theoretical} {empirical}");
+            Console.WriteLine($"theoretical: {theoretical} | empirical: {empirical}");
 
         private static Sample FromIEnumerable(IEnumerable<int> input) => new(input.Select(item => (double) item));
     }
