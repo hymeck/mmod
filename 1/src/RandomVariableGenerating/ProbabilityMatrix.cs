@@ -8,20 +8,19 @@ namespace RandomVariableGenerating
     public class ProbabilityMatrix
     {
         private readonly double[,] _probabilities;
-        private double[] _xProbabilities;
-        private double[] _yProbabilities;
+        private double[] _xDensity;
+        private double[] _yDensity;
 
         public ProbabilityMatrix(double[,] probabilities)
         {
             _probabilities = Guard.Against.Null(probabilities, nameof(probabilities));
         }
 
-        public double this[int x, int y] => _probabilities[x, y];
-        public IReadOnlyList<double> XProbabilities => _xProbabilities ??= GetXProbabilities();
-        public IReadOnlyList<double> YProbabilities => _yProbabilities ??= GetYProbabilities();
-        public int TotalCount => XProbabilities.Count * YProbabilities.Count;
+        public IReadOnlyList<double> XDensity => _xDensity ??= GetXDensity();
+        public IReadOnlyList<double> YDensity => _yDensity ??= GetYDensity();
+        public int TotalCount => XDensity.Count * YDensity.Count;
 
-        private double[] GetXProbabilities()
+        private double[] GetXDensity()
         {
             var rows = _probabilities.GetLength(0);
             var columns = _probabilities.GetLength(1);
@@ -37,7 +36,7 @@ namespace RandomVariableGenerating
             return xProbabilities;
         }
         
-        private double[] GetYProbabilities()
+        private double[] GetYDensity()
         {
             var rows = _probabilities.GetLength(0);
             var columns = _probabilities.GetLength(1);

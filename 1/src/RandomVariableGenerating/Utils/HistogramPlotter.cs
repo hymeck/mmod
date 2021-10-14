@@ -22,12 +22,12 @@ namespace RandomVariableGenerating.Utils
         }
 
         public Plot PlotHistogramX() =>
-            AddTitleAndLabels(Plot(_theoreticalProbabilities.XProbabilities, _empiricalProbabilities.XProbabilities,
+            AddTitleAndLabels(Plot(_theoreticalProbabilities.XDensity, _empiricalProbabilities.XDensity,
                 _inputX));
 
         public Plot PlotHistogramY() =>
             AddTitleAndLabels(
-                Plot(_theoreticalProbabilities.YProbabilities, _empiricalProbabilities.YProbabilities, _inputY), "Y");
+                Plot(_theoreticalProbabilities.YDensity, _empiricalProbabilities.YDensity, _inputY), "Y");
 
         private static Plot Plot(IReadOnlyList<double> theoreticalProbabilities, IReadOnlyList<double> empiricalProbabilities, int[] source)
         {

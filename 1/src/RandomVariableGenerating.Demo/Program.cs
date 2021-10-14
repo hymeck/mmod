@@ -30,7 +30,8 @@ namespace RandomVariableGenerating.Demo
 
             #endregion // + Input initialization +
 
-            var variables = RandomVariableGenerator.Generate(random, inputX, inputY, probabilities, volume)
+            var variables = RandomVariableGenerator
+                .Generate(random, inputX, inputY, probabilities, volume)
                 .ToList();
 
             #region + Investigations +
@@ -59,12 +60,12 @@ namespace RandomVariableGenerating.Demo
             
             var meanYEstimation = probabilities.MeanYPointEstimation(inputY);
             var actualMeanYPointEstimation = empiricalProbabilities.MeanYPointEstimation(inputY);
-            Console.Write("\nMean Y point estimation: ");
+            Console.Write("Mean Y point estimation: ");
             PrintStatistics(meanYEstimation, actualMeanYPointEstimation);
             
             var varianceXEstimation = probabilities.VarianceXPointEstimation(inputX);
             var actualVarianceXPointEstimation = empiricalProbabilities.VarianceXPointEstimation(inputX);
-            Console.Write("Variance X point estimation: ");
+            Console.Write("\nVariance X point estimation: ");
             PrintStatistics(varianceXEstimation, actualVarianceXPointEstimation);
             
             var varianceYEstimation = probabilities.VarianceYPointEstimation(inputY);
@@ -72,8 +73,10 @@ namespace RandomVariableGenerating.Demo
             Console.Write("Variance Y point estimation: ");
             PrintStatistics(varianceYEstimation, actualVarianceYPointEstimation);
             
+
             var significance = GetSignificanceFromArgs(args);
             Console.WriteLine($"\nSignificance: {significance}\n");
+
             var (leftX, rightX) = FromIEnumerable(variables.Select(item => item.x))
                 .IntervalEstimation(significance);
             Console.WriteLine($"Interval X: {leftX} to {rightX}");
@@ -87,11 +90,14 @@ namespace RandomVariableGenerating.Demo
             Console.Write("Correlation: ");
             PrintStatistics(correlation, empiricalCorrelation);
 
+
             var confidence = GetConfidenceFromArgs(args);
             Console.WriteLine($"\nConfidence: {confidence}\n");
+
             var chiSquared = confidence.ChiSquared(probabilities.TotalCount - 1);
             Console.WriteLine($"Chi-squared bound value: {chiSquared}");
-            var actualChiSquare = probabilities.ChiSquared(empiricalProbabilities, inputX, inputY, volume);
+
+            var actualChiSquare = probabilities.ChiSquared(empiricalProbabilities, volume);
             Console.WriteLine($"Actual chi-squared value: {actualChiSquare}");
             Console.WriteLine($"Actual < bound: {actualChiSquare < chiSquared}");
 

@@ -136,9 +136,7 @@ namespace RandomVariableGenerating
             throw new InvalidOperationException(nameof(GetIndexY));
         }
 
-        public static IEnumerable<(int x, int y)> Generate(Random random, IReadOnlyList<int> x, IReadOnlyList<int> y, double[,] probabilities, int times = 1)
-        {
-            return new RandomVariableGenerator(random, x, y, probabilities).Generate(times);
-        }
+        public static IEnumerable<(int x, int y)> Generate(Random random, IReadOnlyList<int> x, IReadOnlyList<int> y, double[,] probabilities, int times = 1) => 
+            new RandomVariableGenerator(random, x, y, probabilities).Generate(times);
     }
 }
