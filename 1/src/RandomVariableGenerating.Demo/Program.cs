@@ -80,10 +80,12 @@ namespace RandomVariableGenerating.Demo
             var (leftX, rightX) = FromIEnumerable(variables.Select(item => item.x))
                 .IntervalEstimation(significance);
             Console.WriteLine($"Interval X: {leftX} to {rightX}");
+            Console.WriteLine($"Is X on interval: {meanXEstimation >= leftX && meanXEstimation <= rightX}\n");
             
             var (leftY, rightY) = FromIEnumerable(variables.Select(item => item.y))
                 .IntervalEstimation(significance);
-            Console.WriteLine($"Interval Y: {leftY} to {rightY}\n");
+            Console.WriteLine($"Interval Y: {leftY} to {rightY}");
+            Console.WriteLine($"Is Y on interval: {meanYEstimation >= leftY && meanYEstimation <= rightY}\n");
 
             var correlation = probabilities.Correlation(inputX, inputY);
             var empiricalCorrelation = empiricalProbabilities.Correlation(inputX, inputY);
