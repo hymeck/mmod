@@ -29,18 +29,18 @@ namespace QueueingSystem.Demo.Utils
                 : DefaultArrivalRate
             : DefaultArrivalRate;
 
-        public double GetServerCount() => _serviceRate ??= _args.Count == 2
-            ? double.TryParse(_args[1], out var serviceRate)
+        public double GetServiceRate() => _serviceRate ??= _args.Count == 2
+            ? int.TryParse(_args[1], out var serviceRate)
                 ? serviceRate
                 : DefaultServiceRate
             : DefaultServiceRate;
-        
-        public int GetServiceRate() => _serverCount ??= _args.Count == 3
-            ? int.TryParse(_args[2], out var serviceRate)
-                ? serviceRate
+
+        public int GetServerCount() => _serverCount ??= _args.Count == 3
+            ? int.TryParse(_args[2], out var serverCount)
+                ? serverCount
                 : DefaultServerCount
             : DefaultServerCount;
-        
+
         public int GetQueueCapacity() => _queueCapacity ??= _args.Count == 4
             ? int.TryParse(_args[3], out var queueCapacity)
                 ? queueCapacity
