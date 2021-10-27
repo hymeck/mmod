@@ -35,5 +35,15 @@ namespace QueueingSystem
                 .Select(i => new KeyValuePair<int, double>(i, Math.Pow(trafficIntensity, i)));
             return new Dictionary<int, double>(powers);
         }
+
+        private static Dictionary<int, double> GetFactorials(int n)
+        {
+            var factorials = Enumerable.Range(1, n)
+                .Select(k => Enumerable.Range(1, k).Aggregate(1, (f, i) => f * i))
+                .Select((factorial, i) => new KeyValuePair<int, double>(i, factorial));
+            return new Dictionary<int, double>(factorials);
+        }
+        
+        private static Dictionary<int, double>
     }
 }
