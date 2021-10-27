@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using QueueingSystem.Extensions.Internal;
 
 namespace QueueingSystem.Demo.Utils
 {
@@ -10,7 +11,7 @@ namespace QueueingSystem.Demo.Utils
         private const int DefaultServerCount = 1;
         private const int DefaultQueueCapacity = 1;
         private const double DefaultWaitingTime = double.PositiveInfinity;
-        
+
         private readonly IReadOnlyList<string> _args;
         private double? _arrivalRate;
         private double? _serviceRate;
@@ -23,34 +24,28 @@ namespace QueueingSystem.Demo.Utils
             _args = args ?? Array.Empty<string>();
         }
 
-        public double GetArrivalRate() => _arrivalRate ??= _args.Count == 1
-            ? double.TryParse(_args[0], out var arrivalRate)
-                ? arrivalRate
-                : DefaultArrivalRate
+        public double GetArrivalRate() => _arrivalRate ??= _args.Count > 0
+            ? _args[0].ParseDoubleOrDefault(DefaultArrivalRate)
             : DefaultArrivalRate;
 
-        public double GetServiceRate() => _serviceRate ??= _args.Count == 2
-            ? int.TryParse(_args[1], out var serviceRate)
-                ? serviceRate
-                : DefaultServiceRate
+        public double GetServiceRate() => _serviceRate ??= _args.Count > 1
+            ? _args[1].ParseDoubleOrDefault(DefaultServiceRate)
             : DefaultServiceRate;
 
-        public int GetServerCount() => _serverCount ??= _args.Count == 3
+        public int GetServerCount() => _serverCount ??= _args.Count > 2
             ? int.TryParse(_args[2], out var serverCount)
                 ? serverCount
                 : DefaultServerCount
             : DefaultServerCount;
 
-        public int GetQueueCapacity() => _queueCapacity ??= _args.Count == 4
+        public int GetQueueCapacity() => _queueCapacity ??= _args.Count > 3
             ? int.TryParse(_args[3], out var queueCapacity)
                 ? queueCapacity
                 : DefaultQueueCapacity
             : DefaultQueueCapacity;
-        
-        public double GetWaitingTime() => _waitingTime ??= _args.Count == 5
-            ? double.TryParse(_args[4], out var waitingTime)
-                ? waitingTime
-                : DefaultWaitingTime
+
+        public double GetWaitingTime() => _waitingTime ??= _args.Count > 4
+            ? _args[4].ParseDoubleOrDefault(DefaultWaitingTime)
             : DefaultWaitingTime;
     }
 }

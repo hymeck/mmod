@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Globalization;
+using System.Linq;
 using QueueingSystem.Demo.Extensions;
 using static System.Console;
 
@@ -16,7 +16,12 @@ namespace QueueingSystem.Demo
                 PrintHelp();
                 Environment.Exit(1);
             }
-            PrintCharacteristics(characteristics);
+
+            var statistics = new QueueingSystemStatistics(characteristics);
+            PrintCharacteristics(statistics.Characteristics);
+            WriteLine();
+            PrintStatistics(statistics);
+            WriteLine();
         }
 
         private static void PrintHelp()
@@ -31,11 +36,20 @@ namespace QueueingSystem.Demo
 
         private static void PrintCharacteristics(QueueingSystemCharacteristics characteristics)
         {
-            WriteLine($"Arrival rate: {characteristics.ArrivalRate.ToString(CultureInfo.InvariantCulture)}");
-            WriteLine($"Service rate: {characteristics.ServiceRate.ToString(CultureInfo.InvariantCulture)}");
+            WriteLine($"Arrival rate: {characteristics.ArrivalRate.ToInvariantCultureString()}");
+            WriteLine($"Service rate: {characteristics.ServiceRate.ToInvariantCultureString()}");
             WriteLine($"Server count: {characteristics.ServerCount.ToString()}");
             WriteLine($"Queue capacity: {characteristics.QueueCapacity.ToString()}");
-            WriteLine($"Waiting time: {characteristics.WaitingTime.ToString(CultureInfo.InvariantCulture)}");
+            WriteLine($"Waiting time: {characteristics.WaitingTime.ToInvariantCultureString()}");
+        }
+
+        private static void PrintStatistics(QueueingSystemStatistics statistics)
+        {
+            var probabilitiesStrings = statistics.Probabilities
+                .Select((p, i) => $"#{i.ToString()}: {p.ToInvariantCultureString()}");
+            WriteLine("Probabilities: ");
+            WriteLine(string.Join(Environment.NewLine, probabilitiesStrings));
+            WriteLine($"Sum: {statistics.Probabilities.Sum().ToInvariantCultureString()}");
         }
     }
 }
