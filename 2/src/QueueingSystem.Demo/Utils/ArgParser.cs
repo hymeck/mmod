@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using QueueingSystem.Extensions.Internal;
+using QueueingSystem.Demo.Extensions;
 
 namespace QueueingSystem.Demo.Utils
 {

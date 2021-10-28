@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using Ardalis.GuardClauses;
+using QueueingSystem.Extensions;
 // ReSharper disable PossibleMultipleEnumeration
 
-namespace QueueingSystem.Extensions.Internal
+namespace QueueingSystem.Utils
 {
     internal class QueueingSystemCharacteristicsHelper
     {

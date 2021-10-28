@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace QueueingSystem.Extensions.Internal
+namespace QueueingSystem.Demo.Extensions
 {
     public static class StringExtensions
     {
