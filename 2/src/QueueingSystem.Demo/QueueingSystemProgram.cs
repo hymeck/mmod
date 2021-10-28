@@ -50,6 +50,13 @@ namespace QueueingSystem.Demo
             WriteLine("Probabilities: ");
             WriteLine(string.Join(Environment.NewLine, probabilitiesStrings));
             WriteLine($"Sum: {statistics.Probabilities.Sum().ToInvariantCultureString()}");
+            WriteLine();
+            WriteLine($"Probability of Rejection: {statistics.RejectionProbability.ToInvariantCultureString()}");
+            WriteLine($"Relative bandwidth: {statistics.RelativeBandwidth.ToInvariantCultureString()}");
+            WriteLine($"Absolute bandwidth: {statistics.AbsoluteBandwidth.ToInvariantCultureString()}");
+            WriteLine($"Average number of customers in queue: {statistics.AverageCustomersInQueue.ToInvariantCultureString()}");
+            WriteLine($"Average number of customers in system: {statistics.AverageCustomersInSystem.ToInvariantCultureString()}");
+            WriteLine($"Average time of waiting: {statistics.AverageWaitingTime.ToInvariantCultureString()}");
         }
     }
 }
