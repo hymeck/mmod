@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Ardalis.GuardClauses;
+using QueueingSystem.Extensions;
 using QueueingSystem.Utils;
 
 namespace QueueingSystem
@@ -29,12 +30,18 @@ namespace QueueingSystem
             .Sum();
 
         public double AverageCustomersInSystem => _averageCustomersInSystem ??=
-            AverageCustomersInQueue + Probabilities
-                .Skip(Characteristics.ServerCount + 1)
+            Probabilities
+                .Skip(1)
+                .Take(Characteristics.ServerCount)
+                .Select((p, i) => p * (i + 1))
+                .Sum() + 
+            Probabilities
+                .TakeLast(Characteristics.QueueCapacity)
                 .Select(p => Characteristics.ServerCount * p)
                 .Sum();
 
-        public double AverageWaitingTime =>
-            RelativeBandwidth / Characteristics.ServiceRate + Characteristics.WaitingTime;
+        public double AverageTimeInQueue => RelativeBandwidth / Characteristics.ServiceRate;
+        public double AverageTimeInSystem => AverageCustomersInSystem / Characteristics.ArrivalRate;
+        public double AverageBusyChannels => RelativeBandwidth * Characteristics.InternalTrafficIntensity();
     }
 }

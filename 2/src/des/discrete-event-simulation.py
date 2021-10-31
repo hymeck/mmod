@@ -98,7 +98,7 @@ class QueueingSystem:
         return self._average_time_in_system
 
     @property
-    def average_busy(self) -> float:
+    def average_busy_servers(self) -> float:
         if self._average_busy is None:
             self._average_busy = self.relative_bandwidth * self.holder.arrival_rate / self.holder.service_rate
         return self._average_busy
@@ -138,7 +138,7 @@ class QueueingSystem:
 
     def run(self) -> None:
         self.env.process(self._generate_customers())
-        self.env.run(60 * self.holder.duration)
+        self.env.run(self.holder.duration)
 
     def _get_probabilities(self) -> list[float]:
         n = self.holder.server_count
@@ -209,13 +209,12 @@ def get_duration(args: argparse.Namespace) -> float:
 # region + printing +
 
 def print_input(input_holder: InputDataHolder) -> None:
-    print('input:')
-    print(f'arrival rate: {input_holder.arrival_rate}')
-    print(f'service rate: {input_holder.service_rate}')
-    print(f'number of servers: {input_holder.server_count}')
-    print(f'capacity of a queue: {input_holder.queue_capacity}')
-    print(f'waiting time: {input_holder.waiting_time}')
-    print(f'investigation duration: {input_holder.duration}')
+    print(f'Arrival rate: {input_holder.arrival_rate}')
+    print(f'Service rate: {input_holder.service_rate}')
+    print(f'Server count: {input_holder.server_count}')
+    print(f'Queue capacity: {input_holder.queue_capacity}')
+    print(f'Waiting time: {input_holder.waiting_time}')
+    print(f'Investigation duration: {input_holder.duration}')
 
 
 # endregion + printing +
@@ -232,7 +231,10 @@ def main():
     print_input(input_holder)
     system = QueueingSystem(input_holder, simpy.Environment(0))
     system.run()
-    print(f'Probabilities: {system.probabilities}')
+    print(f'Probabilities:')
+    for i, p in enumerate(system.probabilities):
+        print(f'#{i}: {p}')
+    print(f'Sum: {sum(system.probabilities)}')
     print(f'Probability of rejection: {system.rejection_probability}')
     print(f'Relative bandwidth: {system.relative_bandwidth}')
     print(f'Absolute bandwidth: {system.absolute_bandwidth}')
@@ -240,7 +242,7 @@ def main():
     print(f'Average number of customers in system: {system.average_customers_in_system}')
     print(f'Average time in queue: {system.average_time_in_queue}')
     print(f'Average time in system: {system.average_time_in_system}')
-    print(f'Average busy channels: {system.average_busy}')
+    print(f'Average busy servers: {system.average_busy_servers}')
 
 
 if __name__ == '__main__':

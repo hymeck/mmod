@@ -56,7 +56,9 @@ namespace QueueingSystem.Demo
             WriteLine($"Absolute bandwidth: {statistics.AbsoluteBandwidth.ToInvariantCultureString()}");
             WriteLine($"Average number of customers in queue: {statistics.AverageCustomersInQueue.ToInvariantCultureString()}");
             WriteLine($"Average number of customers in system: {statistics.AverageCustomersInSystem.ToInvariantCultureString()}");
-            WriteLine($"Average time of waiting: {statistics.AverageWaitingTime.ToInvariantCultureString()}");
+            WriteLine($"Average time in queue: {statistics.AverageTimeInQueue.ToInvariantCultureString()}");
+            WriteLine($"Average time in system: {statistics.AverageTimeInSystem.ToInvariantCultureString()}");
+            WriteLine($"Average busy servers: {statistics.AverageBusyChannels.ToInvariantCultureString()}");
         }
     }
 }
