@@ -6,11 +6,11 @@ namespace QueueingSystem.Demo.Utils
 {
     public class ArgParser
     {
-        private const double DefaultArrivalRate = 1d;
-        private const double DefaultServiceRate = 2d;
-        private const int DefaultServerCount = 1;
-        private const int DefaultQueueCapacity = 1;
-        private const double DefaultWaitingTime = double.PositiveInfinity;
+        private const double DefaultArrivalRate = 10d;
+        private const double DefaultServiceRate = 3d;
+        private const int DefaultServerCount = 3;
+        private const int DefaultQueueCapacity = 4;
+        private const double DefaultWaitingTime = 0.166666667d;
 
         private readonly IReadOnlyList<string> _args;
         private double? _arrivalRate;
