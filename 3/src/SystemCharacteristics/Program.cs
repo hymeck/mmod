@@ -23,7 +23,7 @@ namespace SystemCharacteristics
             double TrafficIntensity(double l, double mu) => l / mu;
             double ZeroProbability(double rho, int m) => (1 - rho) / (1 - Pow(rho, m + 2));
             double RejectionProbability(double rho, double p0, int m) => Pow(rho, m + 1) * p0;
-            double RelativeBandwidth(double p0) => 1 - p0;
+            double RelativeBandwidth(double rp) => 1 - rp;
             double AbsoluteBandwidth(double l, double Q) => l * Q;
 
             double QueueLength(double rho, double p0, int m) =>
@@ -35,6 +35,7 @@ namespace SystemCharacteristics
             double QueueTime(double ql, double l) => ql / l;
             double SystemTime(double sl, double l) => sl / l;
             double Downtime(double rp, double serviceTime) => rp * serviceTime;
+            double BusyChannels(double A, double mu) => A / mu;
 
             var table = new Table
             {
@@ -78,8 +79,8 @@ namespace SystemCharacteristics
             var rp1 = RejectionProbability(rho, p01, m1);
             var rp2 = RejectionProbability(rho, p02, m2);
             
-            var Q1 = RelativeBandwidth(p01);
-            var Q2 = RelativeBandwidth(p02);
+            var Q1 = RelativeBandwidth(rp1);
+            var Q2 = RelativeBandwidth(rp2);
             
             var A1 = AbsoluteBandwidth(l, Q1);
             var A2 = AbsoluteBandwidth(l, Q2);
@@ -99,26 +100,22 @@ namespace SystemCharacteristics
             var d1 = Downtime(rp1, 1d / mu);
             var d2 = Downtime(rp2, 1d / mu);
 
-            string Deviation(double v1, double v2) =>
-                v1.CompareTo(v2) switch
-                {
-                    -1 => @"/\",
-                    0 => "=",
-                    1 => @"\/",
-                    _ => "undefined"
-                };
+            var bc1 = BusyChannels(A1, mu);
+            var bc2 = BusyChannels(A2, mu);
+                
 
             table
-                .AddRow("Traffic intensity", rhoStr, rhoStr, Deviation(rho, rho))
-                .AddRow("Zero probability", p01.ToInvariantString(), p02.ToInvariantString(), Deviation(p01, p02))
-                .AddRow("Rejection probability", rp1.ToInvariantString(), rp2.ToInvariantString(), Deviation(rp1, rp2))
-                .AddRow("Relative bandwidth", Q1.ToInvariantString(), Q2.ToInvariantString(), Deviation(Q1, Q2))
-                .AddRow("Absolute bandwidth", A1.ToInvariantString(), A2.ToInvariantString(), Deviation(A1, A2))
-                .AddRow("Queue length", ql1.ToInvariantString(), ql2.ToInvariantString(), Deviation(ql1, ql2))
-                .AddRow("System length", sl1.ToInvariantString(), sl2.ToInvariantString(), Deviation(ql1, ql2))
-                .AddRow("Time in queue", qt1.ToInvariantString(), qt2.ToInvariantString(), Deviation(qt1, qt2))
-                .AddRow("Time in system", st1.ToInvariantString(), st2.ToInvariantString(), Deviation(st1, st2))
-                .AddRow("Downtime", d1.ToInvariantString(), d2.ToInvariantString(), Deviation(d1, d2));
+                .AddRow("Traffic intensity", rho, rho)
+                .AddRow("Zero probability", p01,p02)
+                .AddRow("Rejection probability", rp1, rp2)
+                .AddRow("Relative bandwidth", Q1, Q2)
+                .AddRow("Absolute bandwidth", A1, A2)
+                .AddRow("Queue length", ql1, ql2)
+                .AddRow("System length", sl1, sl2)
+                .AddRow("Time in queue", qt1, qt2)
+                .AddRow("Time in system", st1, st2)
+                .AddRow("Downtime", d1, d2)
+                .AddRow("Busy channels", bc1, bc2);
 
             AnsiConsole.Write(new FigletText("Lab #3: QS Investigation").Color(Color.Yellow));
             AnsiConsole.Write(new Rule("Characteristics comparison"));
