@@ -51,20 +51,26 @@ namespace SystemCharacteristics
                 {
                     Border = TableBorder.None
                 };
-                t.AddColumns(FromMarkup(WrapText("Characteristics", yellow)), FromMarkup("\\"), FromMarkup(WrapText("Queue capacity", yellow)));
+                t.AddColumns(
+                    FromMarkup(WrapText("Characteristics", yellow)), 
+                    FromMarkup("\\"), 
+                    FromMarkup(WrapText("Queue capacity", yellow)));
                 return new TableColumn(t);
             }
 
-            table.AddColumns(HeaderColumn(), FromMarkup(WrapText("3", yellow)), FromMarkup(WrapText("4", yellow)));
+            table.AddColumns(
+                HeaderColumn(), 
+                FromMarkup(WrapText("3", yellow)), 
+                FromMarkup(WrapText("4", yellow)),
+                FromMarkup(WrapText("Deviation", yellow)));
 
             const int l = 4;
-            const int mu = 2;
+            const double mu = 2d;
             const int m1 = 3;
             const int m2 = 4;
 
             var rho = TrafficIntensity(l, mu);
             var rhoStr = rho.ToInvariantString();
-            table.AddRow("Traffic intensity", rhoStr, rhoStr);
 
             var p01 = ZeroProbability(rho, m1);
             var p02 = ZeroProbability(rho, m2);
@@ -92,18 +98,28 @@ namespace SystemCharacteristics
 
             var d1 = Downtime(rp1, 1d / mu);
             var d2 = Downtime(rp2, 1d / mu);
-            
+
+            string Deviation(double v1, double v2) =>
+                v1.CompareTo(v2) switch
+                {
+                    -1 => @"/\",
+                    0 => "=",
+                    1 => @"\/",
+                    _ => "undefined"
+                };
+
             table
-                .AddRow("Zero probability", p01.ToInvariantString(), p02.ToInvariantString())
-                .AddRow("Rejection probability", rp1.ToInvariantString(), rp2.ToInvariantString())
-                .AddRow("Relative bandwidth", Q1.ToInvariantString(), Q2.ToInvariantString())
-                .AddRow("Absolute bandwidth", A1.ToInvariantString(), A2.ToInvariantString())
-                .AddRow("Queue length", ql1.ToInvariantString(), ql2.ToInvariantString())
-                .AddRow("System length", sl1.ToInvariantString(), sl2.ToInvariantString())
-                .AddRow("Time in queue", qt1.ToInvariantString(), qt2.ToInvariantString())
-                .AddRow("Time in system", st1.ToInvariantString(), st2.ToInvariantString())
-                .AddRow("Downtime", d1.ToInvariantString(), d2.ToInvariantString());
-            
+                .AddRow("Traffic intensity", rhoStr, rhoStr, Deviation(rho, rho))
+                .AddRow("Zero probability", p01.ToInvariantString(), p02.ToInvariantString(), Deviation(p01, p02))
+                .AddRow("Rejection probability", rp1.ToInvariantString(), rp2.ToInvariantString(), Deviation(rp1, rp2))
+                .AddRow("Relative bandwidth", Q1.ToInvariantString(), Q2.ToInvariantString(), Deviation(Q1, Q2))
+                .AddRow("Absolute bandwidth", A1.ToInvariantString(), A2.ToInvariantString(), Deviation(A1, A2))
+                .AddRow("Queue length", ql1.ToInvariantString(), ql2.ToInvariantString(), Deviation(ql1, ql2))
+                .AddRow("System length", sl1.ToInvariantString(), sl2.ToInvariantString(), Deviation(ql1, ql2))
+                .AddRow("Time in queue", qt1.ToInvariantString(), qt2.ToInvariantString(), Deviation(qt1, qt2))
+                .AddRow("Time in system", st1.ToInvariantString(), st2.ToInvariantString(), Deviation(st1, st2))
+                .AddRow("Downtime", d1.ToInvariantString(), d2.ToInvariantString(), Deviation(d1, d2));
+
             AnsiConsole.Write(new FigletText("Lab #3: QS Investigation").Color(Color.Yellow));
             AnsiConsole.Write(new Rule("Characteristics comparison"));
             AnsiConsole.Write(table);
