@@ -37,10 +37,10 @@ namespace QueueingSystem
                 .Sum() + 
             Probabilities
                 .TakeLast(Characteristics.QueueCapacity)
-                .Select(p => Characteristics.ServerCount * p)
+                .Select((p, i) => (Characteristics.ServerCount + i + 1) * p)
                 .Sum();
 
-        public double AverageTimeInQueue => RelativeBandwidth / Characteristics.ServiceRate;
+        public double AverageTimeInQueue => AverageCustomersInQueue / Characteristics.ArrivalRate;
         public double AverageTimeInSystem => AverageCustomersInSystem / Characteristics.ArrivalRate;
         public double AverageBusyChannels => RelativeBandwidth * Characteristics.InternalTrafficIntensity();
     }
