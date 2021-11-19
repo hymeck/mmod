@@ -258,13 +258,16 @@ def print_plots(initial_input: InputDataHolder, args: argparse.Namespace) -> Non
 
     for i in range(p_count):
         a: Axes = axes[i]  # actual type is matplotlib.axes._subplots.AxesSubplot
-        print(type(a))
         color = colors[i % c_count]
         a.set_title(f'p{i}')
         a.fill_between(times, y1=probabilities[i], step='post', alpha=0.5, color=color)
 
     fig.tight_layout()
     fig.show()
+    from datetime import datetime
+    now = datetime.now()
+    now_str = now.strftime('%d-%m-%Y_%H-%M')
+    fig.savefig(now_str + '_plots')
 
 
 def main():
