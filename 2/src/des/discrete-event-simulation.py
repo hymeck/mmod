@@ -103,7 +103,6 @@ class QueueingSystem:
             self._average_busy = self.relative_bandwidth * self.holder.arrival_rate / self.holder.service_rate
         return self._average_busy
 
-
     def _serve_customer(self):
         in_queue_before_request = self._waiting_customers
         in_server_before_request = self._served_customers
@@ -136,9 +135,10 @@ class QueueingSystem:
             self.env.process(self._serve_customer())
             yield self._simulate_customer_arrival()
 
-    def run(self) -> None:
+    def run(self):
         self.env.process(self._generate_customers())
         self.env.run(self.holder.duration)
+        return self
 
     def _get_probabilities(self) -> list[float]:
         n = self.holder.server_count
@@ -148,7 +148,9 @@ class QueueingSystem:
         last = rejected / total_count
         return [self.statistics.served_customers.count(i) / total_count for i in range(1, n + m + 1)] + [last]
 
+
 # region + args processing +
+
 
 def setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
@@ -158,6 +160,9 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument('-sc', '--server-count', help='number of servers in a system', type=int)
     parser.add_argument('-qc', '--queue-capacity', help='capacity of a queue', type=int)
     parser.add_argument('-wt', '--waiting-time', help='mean of waiting time', type=float)
+    parser.add_argument('-start', help='start value for stationary mode plots', type=int, default=100)
+    parser.add_argument('-end', help='end value for stationary mode plots', type=int, default=10001)
+    parser.add_argument('-step', help='step value for stationary mode plots', type=int, default=100)
     return parser
 
 
@@ -196,7 +201,7 @@ def get_queue_capacity(args: argparse.Namespace) -> int:
 
 
 def get_waiting_time(args: argparse.Namespace) -> float:
-    return _get_value_or_default(args, 'queue_capacity', 0.166666667)
+    return _get_value_or_default(args, 'waiting_time', 0.166666667)
 
 
 def get_duration(args: argparse.Namespace) -> float:
@@ -225,6 +230,43 @@ def get_input_holder(args: argparse.Namespace) -> InputDataHolder:
                            get_waiting_time(args), args.duration)
 
 
+def print_plots(initial_input: InputDataHolder, args: argparse.Namespace) -> None:
+    import matplotlib.pyplot as plt
+    import copy
+    from matplotlib.figure import Figure
+    from matplotlib.axes._subplots import Axes
+
+    data = copy.deepcopy(initial_input)
+
+    p_count = data.server_count + data.queue_capacity + 1
+
+    fig: Figure
+    axes: np.ndarray
+    fig, axes = plt.subplots(ncols=1, nrows=p_count, figsize=(16, 28),
+                             gridspec_kw={'height_ratios': [1] * p_count, 'width_ratios': [1]})
+    plt.xlabel(f'lambda = {data.arrival_rate}, mu = {data.service_rate}, n = {data.server_count}, m = {data.queue_capacity}, v = {1 / data.waiting_time}')
+    colors: list[str] = plt.rcParams['axes.prop_cycle'].by_key()['color']
+    c_count = len(colors)
+
+    times = [float(t) for t in range(args.start, args.end, args.step)]
+    probabilities: list[list[float]] = [[] for _ in range(p_count)]
+    for t in times:
+        data.duration = t
+        s = QueueingSystem(data, simpy.Environment(0)).run()
+        for i, p in enumerate(s.probabilities):
+            probabilities[i].append(p)
+
+    for i in range(p_count):
+        a: Axes = axes[i]  # actual type is matplotlib.axes._subplots.AxesSubplot
+        print(type(a))
+        color = colors[i % c_count]
+        a.set_title(f'p{i}')
+        a.fill_between(times, y1=probabilities[i], step='post', alpha=0.5, color=color)
+
+    fig.tight_layout()
+    fig.show()
+
+
 def main():
     args = get_args(setup_parser())
     input_holder = get_input_holder(args)
@@ -243,6 +285,7 @@ def main():
     print(f'Average time in queue: {system.average_time_in_queue}')
     print(f'Average time in system: {system.average_time_in_system}')
     print(f'Average busy servers: {system.average_busy_servers}')
+    print_plots(input_holder, args)
 
 
 if __name__ == '__main__':
