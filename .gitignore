@@ -8,4 +8,5 @@ obj
 # xUnit artefact
 *.sln.DotSettings.user
 
-1/tests/RandomVariableGenerating.Tests/Playground.cs
+# matplotlib image artifacts
+*.png
