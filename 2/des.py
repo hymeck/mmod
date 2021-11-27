@@ -48,6 +48,8 @@ class QueueingSystem:
     @property
     def _served_customers(self) -> int: return self.server.count
 
+    def _handle_request(self, request): return request | self.env.process(self._get_customer_patience_generator())
+
     def _serve_customer(self):
         in_queue_before_request = self._waiting_customers
         in_server_before_request = self._served_customers
@@ -62,7 +64,7 @@ class QueueingSystem:
             if in_queue_after_request <= self.holder.queue_capacity:
                 arrival_time = self.env.now
                 self.statistics.served_customers.append(in_queue_after_request + in_server_after_request)
-                yield request | self.env.process(self._get_customer_patience_generator())
+                yield self._handle_request(request)
                 waiting_time = self.env.now - arrival_time
                 self.statistics.times_in_queue.append(waiting_time)
                 if request.processed:
@@ -114,7 +116,8 @@ class QueueingSystem:
     def average_time_in_system(self) -> float: return self._mean(self.statistics.times_in_system)
 
     @property
-    def average_busy_servers(self) -> float: return self.average_customers_in_system
+    # def average_busy_servers(self) -> float: return self.relative_bandwidth * self.holder.server_count
+    def average_busy_servers(self) -> float: return self.relative_bandwidth * self.holder.arrival_rate / self.holder.service_rate
 
     def run(self):
         self.env.process(self._generate_customers())
@@ -220,7 +223,8 @@ class TheoreticalStatistics:
     def average_time_in_system(self) -> float: return self.average_customers_in_system / self.parameters.arrival_rate
 
     @property
-    def average_busy_servers(self) -> float: return self.average_customers_in_system
+    # def average_busy_servers(self) -> float: return self.relative_bandwidth * self.parameters.server_count
+    def average_busy_servers(self) -> float: return self.relative_bandwidth * self.rho
 
 
 def print_statistics(statistics: Union[QueueingSystem, TheoreticalStatistics], theoretical: bool = True) -> None:
@@ -229,8 +233,8 @@ def print_statistics(statistics: Union[QueueingSystem, TheoreticalStatistics], t
     print(f'probabilities:')
     for i, p in enumerate(statistics.probabilities):
         print(f'#{i}: {p}')
-    print()
     print(f'sum: {sum(statistics.probabilities)}')
+    print()
     print(f'probability of rejection: {statistics.rejection_probability}')
     print(f'relative bandwidth: {statistics.relative_bandwidth}')
     print(f'absolute bandwidth: {statistics.absolute_bandwidth}')
@@ -242,7 +246,7 @@ def print_statistics(statistics: Union[QueueingSystem, TheoreticalStatistics], t
     print()
 
 
-def print_plots(parameters: QueueingSystemParameters, theoretical: TheoreticalStatistics, args: argparse.Namespace) -> None:
+def print_plots(parameters: QueueingSystemParameters, theoretical_probabilities: list[float], args: argparse.Namespace) -> None:
     import matplotlib.pyplot as plt
     import copy
     from matplotlib.figure import Figure
@@ -274,7 +278,7 @@ def print_plots(parameters: QueueingSystemParameters, theoretical: TheoreticalSt
         color = colors[i % c_count]
         a.set_title(f'p{i}')
         a.fill_between(times, y1=probabilities[i], step='post', alpha=0.5, color=color)
-        a.plot(times, [theoretical.probabilities[i]] * len(times), '-k')
+        a.plot(times, [theoretical_probabilities[i]] * len(times), '-k')
 
     # show plots
     fig.tight_layout()
@@ -293,9 +297,10 @@ def _main():
     print_input(parameters)
     ts = TheoreticalStatistics(parameters)
     print_statistics(ts)
+    print()
     system = QueueingSystem(parameters, simpy.Environment(0)).run()
     print_statistics(system, theoretical=False)
-    print_plots(parameters, ts, args)
+    print_plots(parameters, ts.probabilities, args)
 
 
 if __name__ == '__main__':
