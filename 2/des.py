@@ -6,6 +6,7 @@ from numpy.random import exponential as exp
 from numpy import ndarray
 from functools import reduce
 from typing import Optional, Union
+import numpy as np
 
 
 class QueueingSystemParameters:
@@ -134,9 +135,8 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument('-sc', '--server-count', help='number of servers in a system', type=int, default=3)
     parser.add_argument('-qc', '--queue-capacity', help='capacity of a queue', type=int, default=4)
     parser.add_argument('-v', '--v', help='v', type=float, default=6.)
-    parser.add_argument('-start', help='start value for stationary mode plots', type=int, default=100)
-    parser.add_argument('-end', help='end value for stationary mode plots', type=int, default=10001)
-    parser.add_argument('-step', help='step value for stationary mode plots', type=int, default=100)
+    parser.add_argument('-ic', '--interval-count', help='count of intervals for plot', type=int, default=100)
+    parser.add_argument('-id', '--investigation-duration', help='how many system will run for plot', type=int, default=10000)
     return parser
 
 
@@ -251,44 +251,32 @@ def print_plots(parameters: QueueingSystemParameters, theoretical_probabilities:
     import copy
     from matplotlib.figure import Figure
     from matplotlib.axes._subplots import Axes
+    from datetime import datetime
 
     data = copy.deepcopy(parameters)
+    data.duration = args.investigation_duration
+    interval_count = args.interval_count
     p_count = data.server_count + data.queue_capacity + 1  # total probabilities number
 
-    # init plot objects
-    fig: Figure
-    axes: ndarray
-    fig, axes = plt.subplots(ncols=1, nrows=p_count, figsize=(16, 28), gridspec_kw={'height_ratios': [1] * p_count, 'width_ratios': [1]})
-    plt.xlabel(f'lambda = {data.arrival_rate}, mu = {data.service_rate}, n = {data.server_count}, m = {data.queue_capacity}, v = {data.v}')
+    syst = QueueingSystem(data, simpy.Environment(0)).run()
 
-    # generate queueing systems and save probabilities of each system
-    times = [float(t) for t in range(args.start, args.end, args.step)]
-    probabilities: list[list[float]] = [[] for _ in range(p_count)]
-    for t in times:
-        data.duration = t
-        s = QueueingSystem(data, simpy.Environment(0)).run()
-        for i, p in enumerate(s.probabilities):
-            probabilities[i].append(p)
+    intervals = np.array_split(syst.statistics.customers_in_system, interval_count)
+    for i in range(1, len(intervals)):
+        intervals[i] = np.append(intervals[i], intervals[i - 1])
 
-    # set plot for every probability
-    colors: list[str] = plt.rcParams['axes.prop_cycle'].by_key()['color']
-    c_count = len(colors)
-    for i in range(p_count):
-        a: Axes = axes[i]  # actual type is matplotlib.axes._subplots.AxesSubplot
-        color = colors[i % c_count]
-        a.set_title(f'p{i}')
-        a.fill_between(times, y1=probabilities[i], step='post', alpha=0.5, color=color)
-        a.plot(times, [theoretical_probabilities[i]] * len(times), '-k')
+    for i in range(len(theoretical_probabilities)):
+        interval_probabilities = []
+        for interval in intervals:
+            interval_probabilities.append(len(interval[interval == i]) / len(interval))
 
-    # show plots
-    fig.tight_layout()
-    fig.show()
-
-    # save plots to disk (useful when running via terminal)
-    from datetime import datetime
-    now = datetime.now()
-    now_str = now.strftime('%d-%m-%Y_%H-%M')
-    fig.savefig(now_str + '_plots')
+        plt.figure(figsize=(5, 5))
+        plt.bar(range(len(interval_probabilities)), interval_probabilities)
+        plt.title(f'probability {i}')
+        plt.axhline(y=theoretical_probabilities[i], xmin=0, xmax=len(interval_probabilities), color='red')
+        plt.show()
+        now = datetime.now()
+        now_str = now.strftime('%d-%m-%Y_%H-%M')
+        plt.savefig(now_str + '_plots_prob' + str(i))
 
 
 def _main():
