@@ -3,10 +3,10 @@ import math
 import sys
 import simpy
 from numpy.random import exponential as exp
-from numpy import ndarray
 from functools import reduce
 from typing import Optional, Union
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 class QueueingSystemParameters:
@@ -128,8 +128,7 @@ class QueueingSystem:
 
 def setup_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
-    parser.add_argument('-d', '--duration', help='simulation time (used in simpy.Environment.run())', type=int,
-                        default=5000)
+    parser.add_argument('-d', '--duration', help='simulation time (used in simpy.Environment.run())', type=int, default=5000)
     parser.add_argument('-ar', '--arrival-rate', help='arrival rate mean', type=float, default=10.)
     parser.add_argument('-sr', '--service-rate', help='service rate mean', type=float, default=3.)
     parser.add_argument('-sc', '--server-count', help='number of servers in a system', type=int, default=3)
@@ -137,6 +136,8 @@ def setup_parser() -> argparse.ArgumentParser:
     parser.add_argument('-v', '--v', help='v', type=float, default=6.)
     parser.add_argument('-ic', '--interval-count', help='count of intervals for plot', type=int, default=100)
     parser.add_argument('-id', '--investigation-duration', help='how many system will run for plot', type=int, default=10000)
+    parser.add_argument('-np', '--no-plot', help='flag for disabling plt.show()', action='store_true', default=False)
+    parser.add_argument('-sp', '--save-plot', help='flag for saving plots to disk', action='store_true', default=False)
     return parser
 
 
@@ -247,23 +248,33 @@ def print_statistics(statistics: Union[QueueingSystem, TheoreticalStatistics], t
 
 
 def print_plots(parameters: QueueingSystemParameters, theoretical_probabilities: list[float], args: argparse.Namespace) -> None:
-    import matplotlib.pyplot as plt
     import copy
-    from matplotlib.figure import Figure
-    from matplotlib.axes._subplots import Axes
     from datetime import datetime
 
     data = copy.deepcopy(parameters)
     data.duration = args.investigation_duration
     interval_count = args.interval_count
-    p_count = data.server_count + data.queue_capacity + 1  # total probabilities number
 
-    syst = QueueingSystem(data, simpy.Environment(0)).run()
-
-    intervals = np.array_split(syst.statistics.customers_in_system, interval_count)
+    s = QueueingSystem(data, simpy.Environment(0)).run()
+    intervals = np.array_split(s.statistics.customers_in_system, interval_count)
     for i in range(1, len(intervals)):
         intervals[i] = np.append(intervals[i], intervals[i - 1])
 
+    # print final probabilities bars
+    fig, axs = plt.subplots()
+    axs.bar([i - 0.1 for i in range(len(s.probabilities))], s.probabilities, width=0.2, alpha=0.5, label='empirical')
+    axs.bar([i + 0.1 for i in range(len(theoretical_probabilities))], theoretical_probabilities, width=0.2, alpha=0.5, label='theoretical')
+    plt.title('final probabilities')
+    plt.xlabel(f'lambda = {data.arrival_rate}, mu = {data.service_rate}, n = {data.server_count}, m = {data.queue_capacity}, v = {data.v}')
+    plt.legend()
+    if args.no_plot is not True:
+        plt.show()
+    if args.save_plot is True:
+        now = datetime.now()
+        now_str = now.strftime('%d-%m-%Y_%H-%M-%S-%f')
+        plt.savefig(now_str + '_final_probs')
+
+    # print histogram
     for i in range(len(theoretical_probabilities)):
         interval_probabilities = []
         for interval in intervals:
@@ -273,22 +284,46 @@ def print_plots(parameters: QueueingSystemParameters, theoretical_probabilities:
         plt.bar(range(len(interval_probabilities)), interval_probabilities)
         plt.title(f'probability {i}')
         plt.axhline(y=theoretical_probabilities[i], xmin=0, xmax=len(interval_probabilities), color='red')
-        plt.show()
-        now = datetime.now()
-        now_str = now.strftime('%d-%m-%Y_%H-%M')
-        plt.savefig(now_str + '_plots_prob' + str(i))
+        plt.xlabel(f'lambda = {data.arrival_rate}, mu = {data.service_rate}, n = {data.server_count}, m = {data.queue_capacity}, v = {data.v}')
+        if args.no_plot is not True:
+            plt.show()
+        if args.save_plot is True:
+            now = datetime.now()
+            now_str = now.strftime('%d-%m-%Y_%H-%M-%S')
+            plt.savefig(now_str + '_plots_prob' + str(i))
+        plt.clf()
 
 
-def _main():
-    args = get_args(setup_parser())
-    parameters = get_input_parameters(args)
+def print_chi_squared(ts: TheoreticalStatistics, qs: QueueingSystem) -> None:
+    from scipy.stats import chi2_contingency
+    chi2, p, dof, ex = chi2_contingency(np.array([ts.probabilities, qs.probabilities]))
+    print(f'chi-squared: {p}')
+
+
+def run_system(parameters: QueueingSystemParameters, args: argparse.Namespace) -> None:
     print_input(parameters)
     ts = TheoreticalStatistics(parameters)
     print_statistics(ts)
     print()
     system = QueueingSystem(parameters, simpy.Environment(0)).run()
     print_statistics(system, theoretical=False)
+    print()
+    print_chi_squared(ts, system)
     print_plots(parameters, ts.probabilities, args)
+
+
+def _main():
+    args = get_args(setup_parser())
+    parameters = get_input_parameters(args)
+    run_system(parameters, args)
+    print('-------------------')
+
+    parameters.service_rate = parameters.service_rate + 1.
+    run_system(parameters, args)
+    print('-------------------')
+
+    parameters.service_rate = parameters.service_rate + 2.
+    run_system(parameters, args)
 
 
 if __name__ == '__main__':
