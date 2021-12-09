@@ -1,3 +1,9 @@
+import datetime
+
+import matplotlib.figure
+import matplotlib.pyplot as plt
+import numpy as np
+
 from des import *
 from prettytable import PrettyTable
 
@@ -26,6 +32,41 @@ class SpecialTheoreticalStatistics(TheoreticalStatistics):
     def average_customers_in_system(self) -> float: return 1. + self.average_customers_in_queue
 
 
+def plot_statistic_comparison(emp_statistic1, emp_statistic2, label, parameters) -> matplotlib.figure.Figure:
+    fig: matplotlib.figure.Figure
+    fig, ax = plt.subplots()
+    data = [emp_statistic1, emp_statistic2]
+    x = np.arange(2)
+    # ax.bar(x + 0.00, data[0], color='y', width=0.25, alpha=0.5, label='with q=3')
+    # ax.bar(x + 0.00, data[1], color='r', width=0.25, alpha=0.5, label='with q=4')
+    ax.bar([0 - 0.1], [data[0]], color='y', width=0.2, alpha=0.5, label='with q=3')
+    ax.bar([0 + 0.1], [data[1]], color='r', width=0.2, alpha=0.5, label='with q=4')
+    plt.title(label)
+    plot_label = f'lambda = {parameters.arrival_rate}, mu = {parameters.service_rate}, n = {parameters.server_count}'
+    plt.xlabel(plot_label)
+    fig.legend()
+    return fig
+
+
+def plot_statistics_comparison(qs1: SpecialQueueingSystem, qs2: SpecialQueueingSystem, args: argparse.Namespace, params: QueueingSystemParameters) -> None:
+    datetime_format = '%Y-%m-%d_%H-%M-%S-%f'
+    data = [
+        (qs1.average_customers_in_queue, qs2.average_customers_in_queue, 'average customers in queue'),
+        (qs1.average_customers_in_system, qs2.average_customers_in_system, 'average customers in system'),
+        (qs1.average_time_in_queue, qs2.average_time_in_queue, 'average time in queue'),
+        (qs1.average_time_in_system, qs2.average_time_in_system, 'average time in system')
+    ]
+    for d in data:
+        f = plot_statistic_comparison(d[0], d[1], d[2], params)
+        if args.no_plot is not True:
+            plt.show()
+        if args.save_plot is True:
+            now = datetime.datetime.now().strftime(datetime_format)
+            f.savefig(now + '_' + d[2].replace(' ', '_'))
+        f.clf()
+    pass
+
+
 def _main():
     from copy import deepcopy
 
@@ -46,6 +87,7 @@ def _main():
         print_statistics(statistics=ts1)
         system1 = SpecialQueueingSystem(parameters1, simpy.Environment(0)).run()
         print_statistics(statistics=system1, theoretical=False)
+        print_plots(parameters1, system1, ts1.probabilities, args)
 
         parameters2 = deepcopy(parameters1)
         parameters2.queue_capacity = 4
@@ -55,6 +97,9 @@ def _main():
         print_statistics(statistics=ts2)
         system2 = SpecialQueueingSystem(parameters2, simpy.Environment(0)).run()
         print_statistics(statistics=system2, theoretical=False)
+        print_plots(parameters2, system2, ts2.probabilities, args)
+
+        plot_statistics_comparison(system1, system2, args, parameters1)
 
         statistics_table = PrettyTable(['statistics', 'q = 3', 'q = 4'])
         statistics_table.add_row(['rejection probability', system1.rejection_probability, system2.rejection_probability])

@@ -247,7 +247,7 @@ def print_statistics(statistics: Union[QueueingSystem, TheoreticalStatistics], t
     print()
 
 
-def print_plots(parameters: QueueingSystemParameters, theoretical_probabilities: list[float], args: argparse.Namespace) -> None:
+def print_plots(parameters: QueueingSystemParameters, s: QueueingSystem, theoretical_probabilities: list[float], args: argparse.Namespace) -> None:
     import copy
     from datetime import datetime
 
@@ -255,7 +255,6 @@ def print_plots(parameters: QueueingSystemParameters, theoretical_probabilities:
     data.duration = args.investigation_duration
     interval_count = args.interval_count
 
-    s = QueueingSystem(data, simpy.Environment(0)).run()
     intervals = np.array_split(s.statistics.customers_in_system, interval_count)
     for i in range(1, len(intervals)):
         intervals[i] = np.append(intervals[i], intervals[i - 1])
@@ -265,13 +264,21 @@ def print_plots(parameters: QueueingSystemParameters, theoretical_probabilities:
     axs.bar([i - 0.1 for i in range(len(s.probabilities))], s.probabilities, width=0.2, alpha=0.5, label='empirical')
     axs.bar([i + 0.1 for i in range(len(theoretical_probabilities))], theoretical_probabilities, width=0.2, alpha=0.5, label='theoretical')
     plt.title('final probabilities')
-    plt.xlabel(f'lambda = {data.arrival_rate}, mu = {data.service_rate}, n = {data.server_count}, m = {data.queue_capacity}, v = {data.v}')
+
+    # for lab2
+    # plot_label = f'lambda = {data.arrival_rate}, mu = {data.service_rate}, n = {data.server_count}, m = {data.queue_capacity}, v = {data.v}'
+    # for lab3
+    plot_label = f'lambda = {data.arrival_rate}, mu = {data.service_rate}, n = {data.server_count}, m = {data.queue_capacity}'
+
+    plt.xlabel(plot_label)
     plt.legend()
+
+    datetime_format = '%Y-%m-%d_%H-%M-%S-%f'
     if args.no_plot is not True:
         plt.show()
     if args.save_plot is True:
         now = datetime.now()
-        now_str = now.strftime('%d-%m-%Y_%H-%M-%S-%f')
+        now_str = now.strftime(datetime_format)
         plt.savefig(now_str + '_final_probs')
 
     # print histogram
@@ -284,12 +291,12 @@ def print_plots(parameters: QueueingSystemParameters, theoretical_probabilities:
         plt.bar(range(len(interval_probabilities)), interval_probabilities)
         plt.title(f'probability {i}')
         plt.axhline(y=theoretical_probabilities[i], xmin=0, xmax=len(interval_probabilities), color='red')
-        plt.xlabel(f'lambda = {data.arrival_rate}, mu = {data.service_rate}, n = {data.server_count}, m = {data.queue_capacity}, v = {data.v}')
+        plt.xlabel(plot_label)
         if args.no_plot is not True:
             plt.show()
         if args.save_plot is True:
             now = datetime.now()
-            now_str = now.strftime('%d-%m-%Y_%H-%M-%S')
+            now_str = now.strftime(datetime_format)
             plt.savefig(now_str + '_plots_prob' + str(i))
         plt.clf()
 
@@ -309,7 +316,7 @@ def run_system(parameters: QueueingSystemParameters, args: argparse.Namespace) -
     print_statistics(system, theoretical=False)
     print()
     print_chi_squared(ts, system)
-    print_plots(parameters, ts.probabilities, args)
+    print_plots(parameters, system, ts.probabilities, args)
 
 
 def _main():
